@@ -3,8 +3,8 @@ import numpy as np
 import os
 
 # Define the file paths for convenience
-x_file_path = '../mnist_data/mnist_x_merged.bin'
-y_file_path = '../mnist_data/mnist_y_merged.bin'
+x_file_path = "../mnist_data/mnist_x_merged.bin"
+y_file_path = "../mnist_data/mnist_y_merged.bin"
 
 # Load the MNIST dataset
 mnist = tf.keras.datasets.mnist
@@ -13,6 +13,7 @@ mnist = tf.keras.datasets.mnist
 # Merge the training and testing datasets
 x_merged = np.concatenate((x_train, x_test), axis=0)
 y_merged = np.concatenate((y_train, y_test), axis=0)
+
 
 # Function to save a numpy array to a binary file
 def save_to_binary(data, filename):
@@ -23,6 +24,7 @@ def save_to_binary(data, filename):
         data = data.astype(np.int32)
     # Write the data to a file
     data.tofile(filename)
+
 
 # print first element of x_merged
 print(x_merged[0])
@@ -35,4 +37,4 @@ if not all(os.path.exists(path) for path in [x_file_path, y_file_path]):
     save_to_binary(x_merged, x_file_path)
     save_to_binary(y_merged, y_file_path)
 else:
-    print('Files already exist')
+    print("Files already exist")
