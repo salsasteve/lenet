@@ -3,8 +3,8 @@ import numpy as np
 import os
 
 # Define the file paths for convenience
-x_file_path = '../mnist_data/mnist_x_merged.bin'
-y_file_path = '../mnist_data/mnist_y_merged.bin'
+x_file_path = 'mnist_data/mnist_x_merged.bin'
+y_file_path = 'mnist_data/mnist_y_merged.bin'
 
 # Load the MNIST dataset
 mnist = tf.keras.datasets.mnist
