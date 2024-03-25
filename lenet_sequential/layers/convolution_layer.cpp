@@ -1,25 +1,30 @@
 #include "convolution_layer.h"
 #include <random>
-#include <algorithm>
-#include <cmath>
 #include <cassert>
-#include <iostream>
+#include <cmath>
 
 ConvolutionLayer::ConvolutionLayer(
     size_t inputHeight, size_t inputWidth, size_t inputDepth,
     size_t filterHeight, size_t filterWidth,
     size_t horizontalStride, size_t verticalStride,
     size_t paddingHeight, size_t paddingWidth,
-    size_t numFilters)
-    : inputHeight(inputHeight), inputWidth(inputWidth), inputDepth(inputDepth),
-      filterHeight(filterHeight), filterWidth(filterWidth),
-      horizontalStride(horizontalStride), verticalStride(verticalStride),
-      paddingHeight(paddingHeight), paddingWidth(paddingWidth),
-      numFilters(numFilters) {
-    initializeFilters();
+    size_t numFilters,
+    const std::vector<std::vector<std::vector<std::vector<float>>>>& initialFilters,
+    bool useInitialFilters)
+: inputHeight(inputHeight), inputWidth(inputWidth), inputDepth(inputDepth),
+  filterHeight(filterHeight), filterWidth(filterWidth),
+  horizontalStride(horizontalStride), verticalStride(verticalStride),
+  paddingHeight(paddingHeight), paddingWidth(paddingWidth),
+  numFilters(numFilters)
+{
+    if (useInitialFilters) {
+        initializeFilters(initialFilters);
+    } else {
+        initializeFiltersRandomly();
+    }
 }
 
-void ConvolutionLayer::initializeFilters() {
+void ConvolutionLayer::initializeFiltersRandomly() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::normal_distribution<> d(0, 1); // Standard normal distribution
@@ -40,6 +45,10 @@ void ConvolutionLayer::initializeFilters() {
     }
 }
 
+void ConvolutionLayer::initializeFilters(const std::vector<std::vector<std::vector<std::vector<float>>>>& initialFilters) {
+    // Checks and assignment as before
+    filters = initialFilters;
+}
 
 void ConvolutionLayer::Forward(const std::vector<std::vector<std::vector<float>>>& input,
                                std::vector<std::vector<std::vector<float>>>& output) {
@@ -77,7 +86,6 @@ void ConvolutionLayer::Forward(const std::vector<std::vector<std::vector<float>>
         }
     }
 }
-
 
 std::vector<std::vector<std::vector<std::vector<float>>>> ConvolutionLayer::getFilters() const {
     return filters;

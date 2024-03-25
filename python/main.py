@@ -29,7 +29,9 @@ import onnx
 def import_mnist():
     mnist = tf.keras.datasets.mnist
 
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    (x_train, y_train), (x_test, y_test) = mnist.load_data() # 60000 train, 10000 test
+    # 28x28 images pixels 0-255
+    # labels 0-9
 
     return x_train, x_test, y_train, y_test
 
@@ -43,9 +45,16 @@ def main():
     y_train = to_categorical(y_train, num_classes=10)  # Assuming there are 10 classes
     y_test = to_categorical(y_test, num_classes=10)
 
+    # 0 = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # Example Predictions [0.1, 0.2, 0.3, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    # 1 = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    # 2 = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+
     # Normalize the data
     x_train = x_train / 255.0 # Data is 0-255 so we normalize to 0-1
     x_test = x_test / 255.0
+
+    print(x_train.shape)
 
     # Reshape the data for CNN
     x_train = x_train.reshape(
@@ -60,6 +69,7 @@ def main():
         Config.IMAGE_SIZE.value,
         int(Config.COLOR_CHANNELS.value),
     )
+    print(x_train.shape)
 
     # Create the model
     model = LeNet()
@@ -81,16 +91,17 @@ def main():
         validation_data=(x_test, y_test),
         callbacks=[es],
     )
+    
 
-    # model.save("attempt2.hdf5")
+    # # model.save("attempt2.hdf5")
 
-    input_signature = [
-        tf.TensorSpec([None, 28, 28, 1], dtype=tf.float32)
-    ]
-    onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature, opset=13)
-    onnx.save(onnx_model, "attempt2.onnx")
+    # input_signature = [
+    #     tf.TensorSpec([None, 28, 28, 1], dtype=tf.float32)
+    # ]
+    # onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature, opset=13)
+    # onnx.save(onnx_model, "attempt2.onnx")
 
-    return 0
+    # return 0
 
 
 if __name__ == "__main__":

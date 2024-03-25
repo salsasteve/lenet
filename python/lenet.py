@@ -37,8 +37,10 @@ def LeNet():
 
     # Block 1
     x = layers.Conv2D(
-        filters=6, kernel_size=5, strides=1, activation="sigmoid", padding="same"
-    )(input_layer)
+        filters=6, kernel_size=5, strides=1, activation="sigmoid", padding="same" 
+    )(input_layer) 
+
+
     # 28x28x1 + padding = 32x32x1 then 32x32x1 - 5x5x1x6 = 28x28x6 6 filters makes 6 feature maps
     x = layers.AvgPool2D(pool_size=2, strides=2)(x)
     # 28x28x6 -> 14x14x6 after pooling
@@ -61,9 +63,11 @@ def LeNet():
     if x.shape[1] != 5 or x.shape[2] != 5:
         raise ValueError("Error in LeNet Block 2")
 
-    # Fully connected layers
-    x = layers.Flatten()(x)
+    # Fully connected layers neural network
+    x = layers.Flatten()(x) 
+    print(x.shape)
     x = layers.Dense(120, activation="sigmoid")(x)
+    print(x.shape)
     x = layers.Dense(84, activation="sigmoid")(x)
     x = layers.Dense(10, activation="softmax")(x)
 
@@ -72,4 +76,4 @@ def LeNet():
     return model
 
 
-# LeNet().summary()
+LeNet().summary()

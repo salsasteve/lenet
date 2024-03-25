@@ -3,13 +3,16 @@
 #include "Convolution.h"
 
 
-void convolve2D(const std::vector<std::vector<int>>& input, 
-                std::vector<std::vector<int>>& output, 
-                const std::vector<std::vector<int>>& kernel) {
+void convolve2D(const std::vector<std::vector<float>>& input, 
+                std::vector<std::vector<float>>& output, 
+                const std::vector<std::vector<float>>& kernel) {
     int kernelSize = kernel.size();
     int kCenter = kernelSize / 2;
     int rows = input.size();
     int cols = input[0].size();
+
+    // Initialize the output matrix with zeros
+    output = std::vector<std::vector<float>>(rows, std::vector<float>(cols, 0));
 
     for (int i = 0; i < rows; ++i) {      
         for (int j = 0; j < cols; ++j) {  

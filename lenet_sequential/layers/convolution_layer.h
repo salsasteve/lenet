@@ -1,45 +1,38 @@
-#ifndef CONV_LAYER_HPP  // Include guard
-#define CONV_LAYER_HPP
+#ifndef CONVOLUTION_LAYER_H
+#define CONVOLUTION_LAYER_H
 
 #include <vector>
-#include <cstdlib> // For size_t
 
-// ConvolutionLayer class declaration
 class ConvolutionLayer {
 public:
-    // Constructor
+    // Constructor declaration
     ConvolutionLayer(
-        size_t inputHeight,
-        size_t inputWidth,
-        size_t inputDepth,
-        size_t filterHeight,
-        size_t filterWidth,
-        size_t horizontalStride,
-        size_t verticalStride,
-        size_t paddingHeight, 
-        size_t paddingWidth,
-        size_t numFilters);
+        size_t inputHeight, size_t inputWidth, size_t inputDepth,
+        size_t filterHeight, size_t filterWidth,
+        size_t horizontalStride, size_t verticalStride,
+        size_t paddingHeight, size_t paddingWidth,
+        size_t numFilters,
+        const std::vector<std::vector<std::vector<std::vector<float>>>>& initialFilters = {},
+        bool useInitialFilters = false);
 
-    // Forward pass
+    // Method declarations
     void Forward(const std::vector<std::vector<std::vector<float>>>& input,
                  std::vector<std::vector<std::vector<float>>>& output);
 
-    // Getters for debugging or further processing
     std::vector<std::vector<std::vector<std::vector<float>>>> getFilters() const;
 
 private:
-    // Layer configurations
+    // Attributes
     size_t inputHeight, inputWidth, inputDepth;
     size_t filterHeight, filterWidth;
     size_t horizontalStride, verticalStride;
     size_t paddingHeight, paddingWidth;
     size_t numFilters;
+    std::vector<std::vector<std::vector<std::vector<float>>>> filters;
 
-    // Filters
-    std::vector<std::vector<std::vector<std::vector<float>>>> filters; // 4D Vector [numFilters][filterDepth][filterHeight][filterWidth]
-
-    // Utility functions
-    void initializeFilters();
+    // Private method declarations
+    void initializeFiltersRandomly();
+    void initializeFilters(const std::vector<std::vector<std::vector<std::vector<float>>>>& initialFilters);
 };
 
-#endif // CONV_LAYER_HPP
+#endif // CONVOLUTION_LAYER_H
