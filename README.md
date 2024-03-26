@@ -18,7 +18,7 @@ pip install -r ./python/requirements.txt
 ```
 
 
-# How to run Python code and download MNIST dataset
+# How to run Python code and download MNIST dataset in Jetson Nano
 ```bash
-python ./python/download_mnist.py
+python3 ./python/download_mnist.py
 ```
