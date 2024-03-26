@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "../MNISTLoader.h"
+#include "MNISTLoader.h"
 #include "config.hpp"
 
 
@@ -179,8 +179,8 @@ FeatureMaps convolve2dDeep(
 
 int main() {
     // Input images
-    const std::string imagesFilename = "../../mnist_data/mnist_x_test.bin"; // Path to your MNIST images binary file
-    const std::string labelsFilename = "../../mnist_data/mnist_y_test.bin"; // Path to your MNIST labels binary file
+    const std::string imagesFilename = "../mnist_data/mnist_x_test.bin"; // Path to your MNIST images binary file
+    const std::string labelsFilename = "../mnist_data/mnist_y_test.bin"; // Path to your MNIST labels binary file
     
     int inputHeight = 28;
     int inputWidth = 28;
