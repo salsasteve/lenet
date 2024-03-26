@@ -40,9 +40,15 @@ print(x_test[0])
 # print first element of y_test
 print(y_test[0])
 
+# print dimensions of the data
+print("x_test shape", x_test.shape)
+print("y_test shape", y_test.shape)
+
+
 # Check if either file does not exist and then proceed to save
 if not all(os.path.exists(path) for path in [x_file_path, y_file_path]):
     save_to_binary(x_test, x_file_path)
     save_to_binary(y_test, y_file_path)
 else:
     print("Files already exist")
+
