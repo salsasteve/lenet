@@ -87,4 +87,10 @@ main
 # Binaries
 *.bin
 
+# model files
+*.model
+*.onnx
+*.h5
+*.hdf5
+
 # Add additional file patterns to ignore below this line
