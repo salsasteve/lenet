@@ -8,6 +8,9 @@ using FourD = vector<vector<vector<vector<float>>>>;
 using TwoD = vector<vector<float>>;
 using OneD = vector<float>;
 
+
+
+
 TwoD LoadDenseWeights(const std::string& filename,
                       const int dim1_size,
                       const int dim2_size){

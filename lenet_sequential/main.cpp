@@ -5,6 +5,7 @@
 #include "read_model_weights.h"
 #include "activations.h"
 #include "pooling.h"
+#include "dense_layer.h"
 #include <fstream>
 
 using namespace std;
@@ -118,23 +119,7 @@ FeatureMap convolve2d(
     return outputMap;
 }
 
-void validateImageDimensions(const vector<vector<vector<float>>> &images, int expectedHeight, int expectedWidth)
-{
-    for (const auto &image : images)
-    {
-        if (image.size() != expectedHeight)
-        {
-            throw std::runtime_error("Unexpected image height.");
-        }
-        for (const auto &row : image)
-        {
-            if (row.size() != expectedWidth)
-            {
-                throw std::runtime_error("Unexpected image width.");
-            }
-        }
-    }
-}
+
 
 FeatureMaps convolve2dDeep(
     const FeatureMaps &inputMaps,
@@ -217,15 +202,15 @@ vector<float> flatten(const FeatureMaps &featureMaps)
 int main()
 {
     // LeNet-5 Input Layer configuration
-    inputLayerConfig inputLayer = {28, 28, 1, 28 * 28};
+    inputLayerConfig inputLayer = {28, 28, 10, 28 * 28};
     // LeNet-5 Layer 1 configuration
     ConvLayerConfig layer1Config = {5, 5, 1, 6, 1, 1, 2};
 
     // create 3d vector to hold the images with aliases
-    vector<Image> input(inputLayer.numOfImageForInference, Image(inputLayer.inputHeight, vector<float>(inputLayer.inputWidth, 0.0)));
+    Image image(inputLayer.inputHeight, vector<float>(inputLayer.inputWidth, 0.0));
+    vector<Image> input(inputLayer.numOfImageForInference, image);
 
-    input = getMNISTImages();
-    validateImageDimensions(input, inputLayer.inputHeight, inputLayer.inputWidth);
+    input = getMNISTImages(inputLayer.numOfImageForInference);
 
     // Create 6 kernels for the first layer of LeNet-5 4D vector with aliases
     Kernel layer1Kernel(layer1Config.kernelHeight, vector<float>(layer1Config.kernelWidth, 0.0));
@@ -282,6 +267,71 @@ int main()
     std::cout << "Flattened features count: " << flattenedFeatures.size() << endl;
 
     // Load the weights for the first dense layer
+    // 400 input neurons, 120 output neurons
+    // 400x120 weights
+    string dense_1_weights = "../read_model/parameters/dense_1_weights.bin";
+    TwoD dense1Weights = LoadDenseWeights(dense_1_weights, 120, 400);
+
+    // Load the biases for the first dense layer
+    // 120 biases
+    string dense_1_bias = "../read_model/parameters/dense_1_bias.bin";
+    vector<float> dense1Biases = LoadBias(dense_1_bias, 120);
+
+    // Perform the matrix multiplication
+    vector<float> dense1Layer = dense(flattenedFeatures, dense1Biases, dense1Weights, 120);
+
+    // Apply the activation function
+    vector<float> dense1Activated = tanh1D(dense1Layer);
+
+    // print dimensions of the dense layer
+    std::cout << "Dense layer dimensions: " << dense1Activated.size() << endl;
+
+    // Load the weights for the second dense layer
+    // 120 input neurons, 84 output neurons
+    // 120x84 weights
+    string dense_2_weights = "../read_model/parameters/dense_2_weights.bin";
+    TwoD dense2Weights = LoadDenseWeights(dense_2_weights, 84, 120);
+
+    // Load the biases for the second dense layer
+    // 84 biases
+    string dense_2_bias = "../read_model/parameters/dense_2_bias.bin";
+    vector<float> dense2Biases = LoadBias(dense_2_bias, 84);
+
+    // Perform the matrix multiplication
+    vector<float> dense2Layer = dense(dense1Activated, dense2Biases, dense2Weights, 84);
+
+    // Apply the activation function
+    vector<float> dense2Activated = tanh1D(dense2Layer);
+
+    // print dimensions of the dense layer
+    std::cout << "Dense layer dimensions: " << dense2Activated.size() << endl;
+
+    // Load the weights for the third dense layer
+    // 84 input neurons, 10 output neurons
+    // 84x10 weights
+    string dense_3_weights = "../read_model/parameters/dense_3_weights.bin";
+    TwoD dense3Weights = LoadDenseWeights(dense_3_weights, 10, 84);
+
+    // Load the biases for the third dense layer
+    // 10 biases
+    string dense_3_bias = "../read_model/parameters/dense_3_bias.bin";
+    vector<float> dense3Biases = LoadBias(dense_3_bias, 10);
+
+    // Perform the matrix multiplication
+    vector<float> dense3Layer = dense(dense2Activated, dense3Biases, dense3Weights, 10);
+
+    // Apply the activation function
+    vector<float> dense3Activated = softmax1D(dense3Layer);
+
+    // print dimensions of the dense layer
+    std::cout << "Dense layer dimensions: " << dense3Activated.size() << endl;
+
+    // Print the output
+    // convert the output
+    for (int i = 0; i < dense3Activated.size(); i++)
+    {
+        std::cout << "Output " << i << ": " << dense3Activated[i] << endl;
+    }
 
 
     return 0;

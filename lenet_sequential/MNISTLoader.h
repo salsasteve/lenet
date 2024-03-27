@@ -14,7 +14,7 @@ std::vector<std::vector<std::vector<float>>> convertTo3DVector(const std::vector
 
 std::vector<float> readMNISTLabels(const std::string& filename, int num_labels);
 
-std::vector<Image> getMNISTImages();
+std::vector<Image> getMNISTImages(int num_images);
 
 std::vector<float> getMNISTLabels();
 

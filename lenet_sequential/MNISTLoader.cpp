@@ -8,7 +8,6 @@
 // CONSTANTS
 const std::string imagesFilename = "../mnist_data/mnist_x_test.bin"; // Path to your MNIST images binary file
 const std::string labelsFilename = "../mnist_data/mnist_y_test.bin"; // Path to your MNIST labels binary file
-const int num_images = 1; // Number of images in the dataset
 const int image_size = 28 * 28; // Size of each image in the dataset
 const int num_labels = 10000; // Number of labels in the dataset
 
@@ -80,7 +79,7 @@ std::vector<float> readMNISTLabels(const std::string& filename, int num_labels) 
 }
 
 
-std::vector<Image> getMNISTImages() {
+std::vector<Image> getMNISTImages(int num_images) {
     std::vector<float> images;
     
     loadMNISTBinary(imagesFilename, images, num_images, image_size);

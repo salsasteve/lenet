@@ -37,6 +37,15 @@ std::vector<std::vector<std::vector<float>>> tanh3D(const std::vector<std::vecto
     return output;
 }
 
+// Hyperbolic tangent function applied to a 1D vector
+std::vector<float> tanh1D(const std::vector<float>& v) {
+    std::vector<float> output;
+    for (auto val : v) {
+        output.push_back(std::tanh(val));
+    }
+    return output;
+}
+
 // Softmax function applied to each row of each 2D matrix in a 3D vector
 std::vector<std::vector<std::vector<float>>> softmax3D(const std::vector<std::vector<std::vector<float>>>& v) {
     std::vector<std::vector<std::vector<float>>> output;
@@ -58,6 +67,23 @@ std::vector<std::vector<std::vector<float>>> softmax3D(const std::vector<std::ve
             new_matrix.push_back(new_row);
         }
         output.push_back(new_matrix);
+    }
+    return output;
+}
+
+// Softmax function applied to a 1D vector
+std::vector<float> softmax1D(const std::vector<float>& v) {
+    float sum = 0.0f;
+    std::vector<float> output(v.size());
+
+    // Compute the sum of exp(values) for the vector
+    for (auto val : v) {
+        sum += std::exp(val);
+    }
+
+    // Compute softmax for each value in the vector
+    for (size_t i = 0; i < v.size(); ++i) {
+        output[i] = std::exp(v[i]) / sum;
     }
     return output;
 }
