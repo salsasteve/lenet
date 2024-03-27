@@ -79,8 +79,8 @@ std::vector<std::vector<std::vector<float>>> relu3D(const std::vector<std::vecto
     return output;
 }
 
-# Tested against python in the python folder
-# Tested against the following main function:
+// Tested against python in the python folder
+// Tested against the following main function:
 // int main() {
 //     // Test data
 //     std::vector<std::vector<std::vector<float>>> data = {
