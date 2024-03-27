@@ -94,14 +94,8 @@ FeatureMap convolve2d(
     }
 
     int kernelHeight = kernels[0].size();
-    std::cout << "Kernel height: " << kernelHeight << endl;
     int kernelWidth = kernels[0][0].size();
-    std::cout << "Kernel width: " << kernelWidth << endl;
     FeatureMap outputMap(outputHeight, vector<float>(outputWidth, 0));
-
-    std::cout << "Output map dimensions: " << outputMap.size() << "x" << outputMap[0].size() << endl;
-
-    std::cout << "Padded input maps dimensions: " << paddedInputMaps.size() << "x" << paddedInputMaps[0].size() << "x" << paddedInputMaps[0][0].size() << endl;
 
     for (int y = 0; y < outputHeight; ++y)
     {
@@ -197,7 +191,6 @@ FeatureMaps convolve2dDeep(
 
     for (int numOfKernels = 0; numOfKernels < kernels.size(); ++numOfKernels)
     {
-        std::cout << "numOfKernels: " << numOfKernels << endl;
         outputMaps[numOfKernels] = convolve2d(paddedInputMaps, kernels[numOfKernels], biases[numOfKernels], stride, outputHeight, outputWidth);
     }
     std::cout << "convolve2dDeep" << endl;
@@ -223,28 +216,15 @@ vector<float> flatten(const FeatureMaps &featureMaps)
 
 int main()
 {
-    // Input images
-    const std::string imagesFilename = "../mnist_data/mnist_x_test.bin"; // Path to your MNIST images binary file
-    const std::string labelsFilename = "../mnist_data/mnist_y_test.bin"; // Path to your MNIST labels binary file
-
-    int total_images = 10000;       // Number of images available in the dataset
-    int numOfImageForInference = 1; // Number of used images for inference
     // LeNet-5 Input Layer configuration
     inputLayerConfig inputLayer = {28, 28, 1, 28 * 28};
     // LeNet-5 Layer 1 configuration
     ConvLayerConfig layer1Config = {5, 5, 1, 6, 1, 1, 2};
 
-    // Load the MNIST images and labels from binary files
-    std::vector<float> allImages; // Vector to hold image data
-    loadMNISTBinary(imagesFilename, allImages, total_images, inputLayer.image_size);
-
     // create 3d vector to hold the images with aliases
     vector<Image> input(inputLayer.numOfImageForInference, Image(inputLayer.inputHeight, vector<float>(inputLayer.inputWidth, 0.0)));
 
-    // check dimensions
-    std::cout << "Input dimensions: " << input.size() << "x" << input[0].size() << "x" << input[0][0].size() << endl;
-
-    input = convertTo3DVector(allImages, inputLayer.numOfImageForInference, inputLayer.image_size);
+    input = getMNISTImages();
     validateImageDimensions(input, inputLayer.inputHeight, inputLayer.inputWidth);
 
     // Create 6 kernels for the first layer of LeNet-5 4D vector with aliases
