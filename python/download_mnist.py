@@ -40,6 +40,10 @@ print(x_test[0])
 # print first element of y_test
 print(y_test[0])
 
+# Cast the data to float32
+x_test = x_test.astype(np.float32)
+y_test = y_test.astype(np.float32)
+
 # print dimensions of the data
 print("x_test shape", x_test.shape)
 print("y_test shape", y_test.shape)
