@@ -15,7 +15,7 @@ TwoD LoadDenseWeights(const std::string& filename,
                       const int dim1_size,
                       const int dim2_size){
     std::ifstream file(filename, std::ios::binary);
-    TwoD dense_weights(dim1_size, vector<float>(dim2_size));
+    TwoD dense_weights(dim2_size, vector<float>(dim1_size));
 
     file.seekg(0, std::ios::end);
     std::streamsize size = file.tellg();
@@ -28,8 +28,8 @@ TwoD LoadDenseWeights(const std::string& filename,
         int data_size = size / sizeof(float);
         std::cout << "Data read from file:" << data_size << std::endl;
         int count = 0;
-        for (int i = 0; i < dim1_size; ++i) {
-            for (int ii=0; ii<dim2_size;++ii){
+        for (int i = 0; i < dim2_size; ++i) {
+            for (int ii=0; ii<dim1_size;++ii){
                 dense_weights[i][ii] = data[count];
                 count++;
             }
@@ -48,7 +48,7 @@ FourD LoadConv2DWeights(const std::string& filename,
                         const int dim3_size,
                         const int dim4_size) {
     std::ifstream file(filename, std::ios::binary);
-    FourD conv2d_weights(dim1_size, vector<vector<vector<float>>>(dim2_size, vector<vector<float>>(dim3_size,vector<float>(dim4_size))));
+    FourD conv2d_weights(dim4_size, vector<vector<vector<float>>>(dim3_size, vector<vector<float>>(dim2_size,vector<float>(dim1_size))));
 
     file.seekg(0, std::ios::end);
     std::streamsize size = file.tellg();
@@ -65,7 +65,7 @@ FourD LoadConv2DWeights(const std::string& filename,
             for (int ii=0; ii<dim2_size;++ii){
                 for (int iii=0; iii<dim3_size; ++iii){
                     for (int iiii=0; iiii<dim4_size; ++iiii){
-                        conv2d_weights[i][ii][iii][iiii] = data[count];
+                        conv2d_weights[iiii][iii][i][ii] = data[count];
                         count++;
                     }
                 }

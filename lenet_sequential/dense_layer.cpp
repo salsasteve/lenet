@@ -21,7 +21,7 @@ std::vector<float> dense(
         
         for (size_t idx = 0; idx < flattenedSize; ++idx)
         {
-            sum += weights[o][idx] * input[idx];
+            sum += weights[idx][o] * input[idx];
         }
 
         sum += bias[o];

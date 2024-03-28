@@ -186,13 +186,16 @@ FeatureMaps convolve2dDeep(
 vector<float> flatten(const FeatureMaps &featureMaps)
 {
     vector<float> flattened;
-    for (const auto &map : featureMaps)
+    int dim1=featureMaps.size();
+    int dim2=featureMaps[0].size();
+    int dim3=featureMaps[0][0].size();
+    for (int j=0; j<dim2; j++)
     {
-        for (const auto &row : map)
+        for (int k=0; k<dim3; k++)
         {
-            for (auto val : row)
+            for (int i=0; i<dim1; i++)
             {
-                flattened.push_back(val);
+                flattened.push_back(featureMaps[i][j][k]);
             }
         }
     }
@@ -226,24 +229,21 @@ int main()
 
     for(int i = 0; i < inputLayer.numOfImageForInference; i++)
     {
-        vector<Image> input(1, allImages[i]);
-
-         // Create 6 kernels for the first layer of LeNet-5 4D vector with aliases
-        Kernel layer1Kernel(layer1Config.kernelHeight, vector<float>(layer1Config.kernelWidth, 0.0));
-        Kernels layer1Kernels(layer1Config.kernelDepth, layer1Kernel);
-        DeepKernels layer1DeepKernels(layer1Config.kernelsCount, layer1Kernels);
-          
-        layer1DeepKernels = LoadConv2DWeights(conv2d_1_weights,
-                                          layer1Config.kernelsCount,
-                                          layer1Config.kernelDepth,
+        
+	vector<Image> input(1, allImages[i]);
+        // Create 6 kernels for the first layer of LeNet-5 4D vector with aliases  
+        DeepKernels layer1DeepKernels = LoadConv2DWeights(conv2d_1_weights,
+                                          //layer1Config.kernelsCount,
+                                          //layer1Config.kernelDepth,
                                           layer1Config.kernelHeight,
-                                          layer1Config.kernelWidth);
-
-        vector<float> biases(layer1Config.kernelsCount);
-        biases = LoadBias(conv2d_1_bias, layer1Config.kernelsCount);
+                                          layer1Config.kernelWidth,
+					  layer1Config.kernelDepth,
+                                          layer1Config.kernelsCount);
+        vector<float> biases = LoadBias(conv2d_1_bias, layer1Config.kernelsCount);
 
         FeatureMaps layer1FeatureMaps = convolve2dDeep(input, layer1DeepKernels, biases, layer1Config.horizontalStride, layer1Config.paddingAmount);
-        FeatureMaps layer1activatedFeatureMaps = tanh3D(layer1FeatureMaps);
+	
+	FeatureMaps layer1activatedFeatureMaps = tanh3D(layer1FeatureMaps);
         FeatureMaps layer1PooledFeatureMaps = averagePooling3D(layer1activatedFeatureMaps, 2, 2);
         
         ConvLayerConfig layer2Config = {5, 5, 6, 16, 1, 1, 0};
@@ -255,10 +255,12 @@ int main()
 
         
         layer2DeepKernels = LoadConv2DWeights(conv2d_2_weights,
-                                            layer2Config.kernelsCount,
-                                            layer2Config.kernelDepth,
+                                            //layer2Config.kernelsCount,
+                                            //layer2Config.kernelDepth,
                                             layer2Config.kernelHeight,
-                                            layer2Config.kernelWidth);
+                                            layer2Config.kernelWidth,
+					    layer2Config.kernelDepth,
+                                            layer2Config.kernelsCount);
 
         vector<float> biases2(layer1Config.kernelsCount);
         biases2 = LoadBias(conv2d_2_bias, layer2Config.kernelsCount);
@@ -274,7 +276,7 @@ int main()
 
         // Flatten the feature maps
         vector<float> flattenedFeatures = flatten(layer2PooledFeatureMaps);
-        std::cout << "Flattened features count: " << flattenedFeatures.size() << endl;
+	std::cout << "Flattened features count: " << flattenedFeatures.size() << endl;
 
         // Load the weights for the first dense layer
         // 400 input neurons, 120 output neurons
@@ -288,7 +290,6 @@ int main()
 
         // Perform the matrix multiplication
         vector<float> dense1Layer = dense(flattenedFeatures, dense1Biases, dense1Weights, 120);
-
         // Apply the activation function
         vector<float> dense1Activated = tanh1D(dense1Layer);
 
