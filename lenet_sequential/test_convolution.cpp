@@ -3,9 +3,10 @@
 #include "MNISTLoader.h"
 #include "config.hpp"
 #include <fstream>
-
+// #include <armadillo>
 
 using namespace std;
+// using namespace arma;
 using Image = vector<vector<float>>;
 using Batch = vector<Image>;
 // 2D vector to hold the kernels for each layer
@@ -27,18 +28,22 @@ using FeatureMap = vector<vector<float>>;
 // channels is the number of output feature maps
 using FeatureMaps = vector<FeatureMap>;
 
-
-FeatureMaps applyPadding(const FeatureMaps& inputMaps, int padding) {
-    if (inputMaps.empty() || inputMaps[0].empty() || inputMaps[0][0].empty()) {
+FeatureMaps applyPadding(const FeatureMaps &inputMaps, int padding)
+{
+    if (inputMaps.empty() || inputMaps[0].empty() || inputMaps[0][0].empty())
+    {
         // Handle error or empty case
         throw std::invalid_argument("Input maps are empty or improperly structured.");
     }
-    if (padding < 0) {
+    if (padding < 0)
+    {
         throw std::invalid_argument("Padding cannot be negative.");
     }
     int numMaps = inputMaps.size();
-    for (const auto& map : inputMaps) {
-        if (map.size() != inputMaps[0].size() || map[0].size() != inputMaps[0][0].size()) {
+    for (const auto &map : inputMaps)
+    {
+        if (map.size() != inputMaps[0].size() || map[0].size() != inputMaps[0][0].size())
+        {
             throw std::invalid_argument("All input maps must have the same dimensions.");
         }
     }
@@ -47,9 +52,12 @@ FeatureMaps applyPadding(const FeatureMaps& inputMaps, int padding) {
     int width = inputMaps[0][0].size();
     FeatureMaps paddedMaps(numMaps, vector<vector<float>>(height + 2 * padding, vector<float>(width + 2 * padding, 0)));
 
-    for (int m = 0; m < numMaps; ++m) {
-        for (int i = 0; i < height; ++i) {
-            for (int j = 0; j < width; ++j) {
+    for (int m = 0; m < numMaps; ++m)
+    {
+        for (int i = 0; i < height; ++i)
+        {
+            for (int j = 0; j < width; ++j)
+            {
                 paddedMaps[m][i + padding][j + padding] = inputMaps[m][i][j];
             }
         }
@@ -59,26 +67,31 @@ FeatureMaps applyPadding(const FeatureMaps& inputMaps, int padding) {
 }
 
 FeatureMap convolve2d(
-    const FeatureMaps& paddedInputMaps,  // [channels][height][width]
-    const Kernels& kernels,           // [depth][height][width]
-    float bias, 
-    int stride, 
-    int outputHeight, 
-    int outputWidth) {
-    
-    if (paddedInputMaps.empty() || kernels.empty() || kernels[0].empty()) {
+    const FeatureMaps &paddedInputMaps, // [channels][height][width]
+    const Kernels &kernels,             // [depth][height][width]
+    float bias,
+    int stride,
+    int outputHeight,
+    int outputWidth)
+{
+
+    if (paddedInputMaps.empty() || kernels.empty() || kernels[0].empty())
+    {
         throw std::invalid_argument("Padded input maps and kernel cannot be empty.");
     }
-    if (stride <= 0) {
+    if (stride <= 0)
+    {
         throw std::invalid_argument("Stride must be positive.");
     }
-    if (outputHeight <= 0 || outputWidth <= 0) {
+    if (outputHeight <= 0 || outputWidth <= 0)
+    {
         throw std::invalid_argument("Output dimensions must be positive.");
     }
-    if (paddedInputMaps.size() != kernels.size()) {
+    if (paddedInputMaps.size() != kernels.size())
+    {
         throw std::invalid_argument("Mismatch between input maps channels and kernel depth.");
     }
-    
+
     int kernelHeight = kernels[0].size();
     std::cout << "Kernel height: " << kernelHeight << endl;
     int kernelWidth = kernels[0][0].size();
@@ -89,12 +102,17 @@ FeatureMap convolve2d(
 
     std::cout << "Padded input maps dimensions: " << paddedInputMaps.size() << "x" << paddedInputMaps[0].size() << "x" << paddedInputMaps[0][0].size() << endl;
 
-    for (int y = 0; y < outputHeight; ++y) {
-        for (int x = 0; x < outputWidth; ++x) {
+    for (int y = 0; y < outputHeight; ++y)
+    {
+        for (int x = 0; x < outputWidth; ++x)
+        {
             float sum = 0.0;
-            for (int m = 0; m < paddedInputMaps.size(); ++m) {
-                for (int i = 0; i < kernelHeight; ++i) {
-                    for (int j = 0; j < kernelWidth; ++j) {
+            for (int m = 0; m < paddedInputMaps.size(); ++m)
+            {
+                for (int i = 0; i < kernelHeight; ++i)
+                {
+                    for (int j = 0; j < kernelWidth; ++j)
+                    {
                         sum += kernels[m][i][j] * paddedInputMaps[m][y * stride + i][x * stride + j];
                     }
                 }
@@ -107,72 +125,42 @@ FeatureMap convolve2d(
     return outputMap;
 }
 
-void validateImageDimensions(const vector<vector<vector<float>>>& images, int expectedHeight, int expectedWidth) {
-    for (const auto& image : images) {
-        if (image.size() != expectedHeight) {
+void validateImageDimensions(const vector<vector<vector<float>>> &images, int expectedHeight, int expectedWidth)
+{
+    for (const auto &image : images)
+    {
+        if (image.size() != expectedHeight)
+        {
             throw std::runtime_error("Unexpected image height.");
         }
-        for (const auto& row : image) {
-            if (row.size() != expectedWidth) {
+        for (const auto &row : image)
+        {
+            if (row.size() != expectedWidth)
+            {
                 throw std::runtime_error("Unexpected image width.");
             }
         }
     }
 }
 
-FeatureMaps convolve2dDeep(
-    const FeatureMaps& inputMaps, 
-    const DeepKernels& kernels, 
-    const vector<float>& biases, 
-    const int stride, 
-    const int padding) {
-
-    // Checks on input parameters
-    if (inputMaps.empty() || kernels.empty()) {
-        throw std::invalid_argument("Input maps and kernels cannot be empty.");
-    }
-    if (biases.size() != kernels.size()) {
-        std::cout << "Number of biases: " << biases.size() << endl;
-        std::cout << "Number of output feature maps: " << kernels.size() << endl;
-        throw std::invalid_argument("Number of biases must match number of output feature maps.");
-    }
-    if (inputMaps.size() != kernels[0].size()) {
-        std::cout << "Input maps channels " << inputMaps.size() << endl;
-        std::cout << "Kernel depth: " << kernels.size() << endl;
-        throw std::invalid_argument("Mismatch between input maps channels and kernel depth.");
-    }
-    if (stride <= 0) {
-        throw std::invalid_argument("Stride must be positive.");
-    }
-    if (padding < 0) {
-        throw std::invalid_argument("Padding cannot be negative.");
+FeatureMaps convolve2dDeep(const FeatureMaps &inputMaps, const DeepKernels &kernels, const vector<float> &biases, int stride, int padding)
+{
+    if (inputMaps.empty() || kernels.empty() || biases.size() != kernels.size() || inputMaps.size() != kernels[0].size() || stride <= 0 || padding < 0)
+    {
+        throw std::invalid_argument("Invalid arguments.");
     }
 
-    // Initialize and apply padding
     auto paddedInputMaps = applyPadding(inputMaps, padding);
-
-    // Calculate output dimensions
     int numOutputMaps = kernels.size();
-    std::cout << "Number of output maps: " << numOutputMaps << endl;
     int outputHeight = (inputMaps[0].size() - kernels[0][0].size() + 2 * padding) / stride + 1;
-    std::cout << "Output height: " << outputHeight << endl;
     int outputWidth = (inputMaps[0][0].size() - kernels[0][0][0].size() + 2 * padding) / stride + 1;
-    std::cout << "Output width: " << outputWidth << endl;
-
-    // Initialize output maps
-    // vector<vector<vector<float>>> outputMaps(numOutputMaps);
     FeatureMaps outputMaps(numOutputMaps, FeatureMap(outputHeight, vector<float>(outputWidth, 0.0)));
 
-    // Perform convolution on each output feature map
-    std::cout << "Biases count: " << biases.size() << endl;
-    std::cout << "Kernels count: " << kernels.size() << endl;
-
-    for (int numOfKernels = 0; numOfKernels < kernels.size(); ++numOfKernels) {
-        std::cout << "numOfKernels: " << numOfKernels << endl;
+    for (int numOfKernels = 0; numOfKernels < kernels.size(); ++numOfKernels)
+    {
         outputMaps[numOfKernels] = convolve2d(paddedInputMaps, kernels[numOfKernels], biases[numOfKernels], stride, outputHeight, outputWidth);
     }
-    std::cout << "convolve2dDeep" << endl;
-    std::cout << "Output maps dimensions: " << outputMaps.size() << "x" << outputMaps[0].size() << "x" << outputMaps[0][0].size() << endl;
+
     return outputMaps;
 }
 
@@ -183,144 +171,147 @@ const int width = 5;
 
 // Define six 5x5 kernels
 float test_kernels[6][5][5] = {
-    {   // Kernel 1
-        {1, 0, 0, 0, 0},
-        {0, 1, 0, 0, 0},
-        {0, 0, 1, 0, 0},
-        {0, 0, 0, 1, 0},
-        {0, 0, 0, 0, 1}
-    },
-    {   // Kernel 2
-        {0, 0, 0, 0, 1},
-        {0, 0, 0, 1, 0},
-        {0, 0, 1, 0, 0},
-        {0, 1, 0, 0, 0},
-        {1, 0, 0, 0, 0}
-    },
-    {   // Kernel 3
-        {1, 1, 1, 1, 1},
-        {1, 1, 1, 1, 1},
-        {1, 1, 1, 1, 1},
-        {1, 1, 1, 1, 1},
-        {1, 1, 1, 1, 1}
-    },
-    {   // Kernel 4
-        {-1, -1, -1, -1, -1},
-        {-1, 2, 2, 2, -1},
-        {-1, 2, 8, 2, -1},
-        {-1, 2, 2, 2, -1},
-        {-1, -1, -1, -1, -1}
-    },
-    {   // Kernel 5
-        {0, -1, 0, -1, 0},
-        {-1, 0, -1, 0, -1},
-        {0, -1, 4, -1, 0},
-        {-1, 0, -1, 0, -1},
-        {0, -1, 0, -1, 0}
-    },
-    {   // Kernel 6
-        {-2, -1, 0, -1, -2},
-        {-1, 0, 1, 0, -1},
-        {0, 1, 2, 1, 0},
-        {-1, 0, 1, 0, -1},
-        {-2, -1, 0, -1, -2}
-    }
-};
+    {// Kernel 1
+     {1, 0, 0, 0, 0},
+     {0, 1, 0, 0, 0},
+     {0, 0, 1, 0, 0},
+     {0, 0, 0, 1, 0},
+     {0, 0, 0, 0, 1}},
+    {// Kernel 2
+     {0, 0, 0, 0, 1},
+     {0, 0, 0, 1, 0},
+     {0, 0, 1, 0, 0},
+     {0, 1, 0, 0, 0},
+     {1, 0, 0, 0, 0}},
+    {// Kernel 3
+     {1, 1, 1, 1, 1},
+     {1, 1, 1, 1, 1},
+     {1, 1, 1, 1, 1},
+     {1, 1, 1, 1, 1},
+     {1, 1, 1, 1, 1}},
+    {// Kernel 4
+     {-1, -1, -1, -1, -1},
+     {-1, 2, 2, 2, -1},
+     {-1, 2, 8, 2, -1},
+     {-1, 2, 2, 2, -1},
+     {-1, -1, -1, -1, -1}},
+    {// Kernel 5
+     {0, -1, 0, -1, 0},
+     {-1, 0, -1, 0, -1},
+     {0, -1, 4, -1, 0},
+     {-1, 0, -1, 0, -1},
+     {0, -1, 0, -1, 0}},
+    {// Kernel 6
+     {-2, -1, 0, -1, -2},
+     {-1, 0, 1, 0, -1},
+     {0, 1, 2, 1, 0},
+     {-1, 0, 1, 0, -1},
+     {-2, -1, 0, -1, -2}}};
 
 // create test bias vector
-float test_biases[6] = {1.0, -1.0, 0.5, 0.0, -0.5, 1.0};
+float test_biases[6] = {1, 1, 1, 1, 1, 1};
 
-int main() {
-    // Input images
-    const std::string imagesFilename = "../mnist_data/mnist_x_test.bin"; // Path to your MNIST images binary file
-    const std::string labelsFilename = "../mnist_data/mnist_y_test.bin"; // Path to your MNIST labels binary file
-    
-    int inputHeight = 28;
-    int inputWidth = 28;
-    int total_images = 10000;// Number of images available in the dataset
-    int numOfImageForInference = 1;  // Number of used images for inference
+int main()
+{
+
     // LeNet-5 Input Layer configuration
-    inputLayerConfig inputLayer = {inputHeight, inputWidth, numOfImageForInference , inputHeight * inputWidth};
-    int layer1KernelHeight= 5;
-    int layer1KernelWidth = 5;
-    int layer1KernelDepth = 1;
-    int layer1KernelCount = 6;
-    int layer1HorizontalStride = 1;
-    int layer1VerticalStride = 1;
-    int layer1PaddingAmount = 2; // Padding around the input
+    inputLayerConfig inputLayer = {28, 28, 1, 28 * 28};
+
     // LeNet-5 Layer 1 configuration
-    ConvLayerConfig layer1Config = {layer1KernelHeight, 
-                                    layer1KernelWidth, 
-                                    layer1KernelDepth, 
-                                    layer1KernelCount, 
-                                    layer1HorizontalStride, 
-                                    layer1VerticalStride, 
-                                    layer1PaddingAmount};
-
-
-    // Load the MNIST images and labels from binary files
-    std::vector<float> allImages; // Vector to hold image data
-    loadMNISTBinary(imagesFilename, allImages, total_images, inputLayer.image_size);
-
-    // create 3d vector to hold the images with aliases
-    vector<Image> input(inputLayer.numOfImageForInference, Image(inputLayer.inputHeight, vector<float>(inputLayer.inputWidth, 0.0)));
-
-    // check dimensions
-    std::cout << "Input dimensions: " << input.size() << "x" << input[0].size() << "x" << input[0][0].size() << endl;
-
-    input = convertTo3DVector(allImages, inputLayer.numOfImageForInference, inputLayer.image_size);
-    validateImageDimensions(input, inputLayer.inputHeight, inputLayer.inputWidth);
+    ConvLayerConfig layer1Config = {5, 5, 1, 6, 1, 1, 2};
 
     // Create 6 kernels for the first layer of LeNet-5 4D vector with aliases
     Kernels layer1Kernels(layer1Config.kernelDepth, Kernel(layer1Config.kernelHeight, vector<float>(layer1Config.kernelWidth, 0.0)));
     DeepKernels layer1DeepKernels(layer1Config.kernelsCount, layer1Kernels);
-    
-    // Check the dimensions of the kernels
-    std::cout << "Kernel dimensions: " << layer1DeepKernels.size() << "x" << layer1DeepKernels[0].size() << "x" << layer1DeepKernels[0][0].size() << "x" << layer1DeepKernels[0][0][0].size() << endl;
 
     // Initialize the kernels with random values
     // THIS WILL EVENTUALLY BE REPLACED WITH THE TRAINED KERNELS
-    for (int k = 0; k < layer1Config.kernelsCount; ++k) {
-        for (int d = 0; d < layer1Config.kernelDepth; ++d) {
-            for (int i = 0; i < layer1Config.kernelHeight; ++i) {
-                for (int j = 0; j < layer1Config.kernelWidth; ++j) {
+    for (int k = 0; k < layer1Config.kernelsCount; ++k)
+    {
+        for (int d = 0; d < layer1Config.kernelDepth; ++d)
+        {
+            for (int i = 0; i < layer1Config.kernelHeight; ++i)
+            {
+                for (int j = 0; j < layer1Config.kernelWidth; ++j)
+                {
                     layer1DeepKernels[k][d][i][j] = test_kernels[k][i][j];
                 }
             }
         }
     }
 
-    std::cout << "Kernel dimensions: " << layer1DeepKernels.size() << "x" << layer1DeepKernels[0].size() << "x" << layer1DeepKernels[0][0].size() << "x" << layer1DeepKernels[0][0][0].size() << endl;
+    // Test the convolve2d
+    // FeatureMap convolve2d(
+    // const FeatureMaps& paddedInputMaps,  // [channels][height][width]
+    // const Kernels& kernels,           // [depth][height][width]
+    // float bias,
+    // int stride,
+    // int outputHeight,
+    // int outputWidth)
 
-    // Create biases for each kernel
-    vector<float> biases(layer1Config.kernelsCount, 0.0);
-    if (biases.size() != layer1Config.kernelsCount) {
-        throw std::invalid_argument("Number of biases must match number of kernels.");
-    }
-    // Initialize the biases with random values
-    // THIS WILL EVENTUALLY BE REPLACED WITH THE TRAINED BIASES
-    for (int k = 0; k < layer1Config.kernelsCount; ++k) {
-        biases[k] = test_biases[k];  // Random float between 0 and 1
-    }
-    
-    FeatureMaps layer1FeatureMaps = convolve2dDeep(input, layer1DeepKernels, biases, layer1Config.horizontalStride, layer1Config.paddingAmount);
-
-    // save the feature maps to a file as binary
-    std::ofstream file("feature_maps.bin", std::ios::binary);
-
-    if (file.is_open()) {
-        for (int i = 0; i < layer1FeatureMaps.size(); ++i) {
-            for (int j = 0; j < layer1FeatureMaps[0].size(); ++j) {
-                for (int k = 0; k < layer1FeatureMaps[0][0].size(); ++k) {
-                    file.write(reinterpret_cast<char*>(&layer1FeatureMaps[i][j][k]), sizeof(float));
-                }
-            }
+    // Create a 5x5 input map
+    FeatureMap inputMap(5, vector<float>(5, 0.0));
+    for (int i = 0; i < 5; ++i)
+    {
+        for (int j = 0; j < 5; ++j)
+        {
+            inputMap[i][j] = 1;
         }
-        file.close();
-    } else {
-        std::cerr << "Could not open the file." << std::endl;
+    }
+    std::cout << "Input map: " << endl;
+    for (int i = 0; i < 5; ++i)
+    {
+        for (int j = 0; j < 5; ++j)
+        {
+            std::cout << inputMap[i][j] << " ";
+        }
+        std::cout << endl;
     }
 
+    // Apply padding
+    FeatureMaps inputMaps(1, inputMap);
+    FeatureMaps paddedInputMaps = applyPadding(inputMaps, 2);
+    std::cout << "Padded input maps: " << endl;
+    for (int i = 0; i < paddedInputMaps[0].size(); ++i)
+    {
+        for (int j = 0; j < paddedInputMaps[0][0].size(); ++j)
+        {
+            std::cout << paddedInputMaps[0][i][j] << " ";
+        }
+        std::cout << endl;
+    }
+
+    // Perform convolution
+    FeatureMap outputMap = convolve2d(paddedInputMaps, layer1DeepKernels[2], test_biases[0], 1, 5, 5);
+
+    // Print the output map
+    std::cout << "Output map: " << endl;
+    for (int i = 0; i < 5; ++i)
+    {
+        for (int j = 0; j < 5; ++j)
+        {
+            std::cout << outputMap[i][j] << " ";
+        }
+        std::cout << endl;
+    }
+
+    // Test the convolve2dDeep
+    FeatureMaps outputMaps = convolve2dDeep(inputMaps, layer1DeepKernels, vector<float>(test_biases, test_biases + 6), 1, 2);
+
+    // Print the output maps
+    std::cout << "Output maps: " << endl;
+    for (int m = 0; m < 6; ++m)
+    {
+        std::cout << "Output map " << m << ":" << endl;
+        for (int i = 0; i < 5; ++i)
+        {
+            for (int j = 0; j < 5; ++j)
+            {
+                std::cout << outputMaps[m][i][j] << " ";
+            }
+            std::cout << endl;
+        }
+    }
 
     return 0;
 }

@@ -320,7 +320,6 @@ int main()
 
         // Load the biases for the third dense layer
         // 10 biases
-        
         vector<float> dense3Biases = LoadBias(dense_3_bias, 10);
 
         // Perform the matrix multiplication

@@ -37,7 +37,7 @@ def LeNet():
 
     # Block 1
     x = layers.Conv2D(
-        filters=6, kernel_size=5, strides=1, activation="sigmoid", padding="same" 
+        filters=6, kernel_size=5, strides=1, activation="tanh", padding="same" 
     )(input_layer) 
 
 
@@ -52,7 +52,7 @@ def LeNet():
 
     # Block 2 input 14x14x6
     x = layers.Conv2D(
-        filters=16, kernel_size=5, strides=1, activation="sigmoid", padding="valid"
+        filters=16, kernel_size=5, strides=1, activation="tanh", padding="valid"
     )(x)
     # 14x14x6 - 5x5x6x16 = 10x10x16
     x = layers.AvgPool2D(pool_size=2, strides=2)(x)
@@ -66,9 +66,9 @@ def LeNet():
     # Fully connected layers neural network
     x = layers.Flatten()(x) 
     print(x.shape)
-    x = layers.Dense(120, activation="sigmoid")(x)
+    x = layers.Dense(120, activation="tanh")(x)
     print(x.shape)
-    x = layers.Dense(84, activation="sigmoid")(x)
+    x = layers.Dense(84, activation="tanh")(x)
     x = layers.Dense(10, activation="softmax")(x)
 
     model = Model(inputs=input_layer, outputs=x)
