@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "MNISTLoader.h"
-#include "config.hpp"
+#include "config.h"
 #include "read_model_weights.h"
 #include "activations.h"
 #include "pooling.h"
@@ -205,7 +205,7 @@ vector<float> flatten(const FeatureMaps &featureMaps)
 int main()
 {
     // LeNet-5 Input Layer configuration
-    inputLayerConfig inputLayer = {28, 28, 10, 28 * 28};
+    InputLayerConfig inputLayer = {28, 28, 10, 28 * 28};
     // LeNet-5 Layer 1 configuration
     ConvLayerConfig layer1Config = {5, 5, 1, 6, 1, 1, 2};
     string conv2d_1_bias = "../read_model/parameters/conv2d_1_bias.bin";
