@@ -6,6 +6,8 @@
 #include "activations.h"
 #include "pooling.h"
 #include "dense_layer.h"
+#include "dense_layer_quant.h"
+#include "dense_1_weights_quantized.h"
 #include <fstream>
 
 using namespace std;
@@ -208,16 +210,6 @@ int main()
     InputLayerConfig inputLayer = {28, 28, 10, 28 * 28};
     // LeNet-5 Layer 1 configuration
     ConvLayerConfig layer1Config = {5, 5, 1, 6, 1, 1, 2};
-    string conv2d_1_bias = "../read_model/parameters/conv2d_1_bias.bin";
-    string conv2d_1_weights = "../read_model/parameters/conv2d_1_weights.bin";
-    string conv2d_2_weights = "../read_model/parameters/conv2d_2_weights.bin";
-    string dense_1_weights = "../read_model/parameters/dense_1_weights.bin";
-    string dense_1_bias = "../read_model/parameters/dense_1_bias.bin";
-    string dense_2_weights = "../read_model/parameters/dense_2_weights.bin";
-    string dense_2_bias = "../read_model/parameters/dense_2_bias.bin";
-    string dense_3_weights = "../read_model/parameters/dense_3_weights.bin";
-    string dense_3_bias = "../read_model/parameters/dense_3_bias.bin";
-    string conv2d_2_bias = "../read_model/parameters/conv2d_2_bias.bin";
 
     // create 3d vector to hold the images with aliases
     Image image(inputLayer.inputHeight, vector<float>(inputLayer.inputWidth, 0.0));
@@ -243,7 +235,7 @@ int main()
 
         FeatureMaps layer1FeatureMaps = convolve2dDeep(input, layer1DeepKernels, biases, layer1Config.horizontalStride, layer1Config.paddingAmount);
 	
-	FeatureMaps layer1activatedFeatureMaps = tanh3D(layer1FeatureMaps);
+	    FeatureMaps layer1activatedFeatureMaps = tanh3D(layer1FeatureMaps);
         FeatureMaps layer1PooledFeatureMaps = averagePooling3D(layer1activatedFeatureMaps, 2, 2);
         
         ConvLayerConfig layer2Config = {5, 5, 6, 16, 1, 1, 0};
@@ -276,22 +268,57 @@ int main()
 
         // Flatten the feature maps
         vector<float> flattenedFeatures = flatten(layer2PooledFeatureMaps);
-	std::cout << "Flattened features count: " << flattenedFeatures.size() << endl;
+	    std::cout << "Flattened features count: " << flattenedFeatures.size() << endl;
 
         // Load the weights for the first dense layer
         // 400 input neurons, 120 output neurons
         // 400x120 weights
         
-        TwoD dense1Weights = LoadDenseWeights(dense_1_weights, 120, 400);
+        // TwoD dense1Weights = LoadDenseWeights(dense_1_weights, 120, 400);
+
+        //
 
         // Load the biases for the first dense layer
         // 120 biases
-        vector<float> dense1Biases = LoadBias(dense_1_bias, 120);
+        // vector<float> dense1Biases = LoadBias(dense_1_bias, 120);
 
         // Perform the matrix multiplication
-        vector<float> dense1Layer = dense(flattenedFeatures, dense1Biases, dense1Weights, 120);
+        // vector<float> dense1Layer = dense(flattenedFeatures, dense1Biases, dense1Weights, 120);
+        
+        // convert 1D to 2D
+        vector<vector<uint16_t>> dense1Weights;
+        for (int i = 0; i < 120; i++)
+        {
+            vector<uint16_t> temp;
+            for (int j = 0; j < 400; j++)
+            {
+                temp.push_back(dense_parameters_1.weights[i * 400 + j]);
+            } 
+            dense1Weights.push_back(temp);
+        }
+
+        // convert array to vector
+        vector<uint16_t> dense1Biases;
+
+        for (int i = 0; i < 120; i++)
+        {
+            dense1Biases.push_back(dense_parameters_1.bias[i]);
+        }
+
+
+        vector<uint16_t> dense1Layer = dense_quant(flattenedFeatures, dense1Biases, dense1Weights, 120);
+
+
+
+        std::vector<float> float_vec;
+
+        for (uint16_t num : dense1Layer) {
+            float_vec.push_back(static_cast<float>(num));
+        }
+       
+
         // Apply the activation function
-        vector<float> dense1Activated = tanh1D(dense1Layer);
+        vector<float> dense1Activated = tanh1D(float_vec);
 
         // print dimensions of the dense layer
         std::cout << "Dense layer dimensions: " << dense1Activated.size() << endl;
