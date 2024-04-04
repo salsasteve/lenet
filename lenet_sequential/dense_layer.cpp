@@ -5,9 +5,9 @@
 #include <vector>
 
 std::vector<float> dense(
-    std::vector<float> &input,           
-    std::vector<float> &bias,                 
-    std::vector<std::vector<float>> &weights, 
+    std::vector<float> &input,
+    const std::vector<float> &bias,
+    const std::vector<std::vector<float>> &weights,
     int numOutputs)
 {
     std::vector<float> output;
