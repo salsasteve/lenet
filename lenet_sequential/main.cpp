@@ -238,7 +238,15 @@ int main()
 
 
         // Perform the matrix multiplication
-        vector<float> dense1Layer = dense(flattenedFeatures, dense_parameters_1.biases, dense_parameters_1.weights, 120);
+//        vector<float> dense1Layer = dense(flattenedFeatures, dense_parameters_1.biases, dense_parameters_1.weights, 120);
+        vector<float> dense1Layer = dense_quantized(flattenedFeatures,
+                                                    dense_quantized_parameters_1.biases,
+                                                    dense_quantized_parameters_1.weights,
+                                                    120,
+                                                    dense_quantized_parameters_1.weights_scale,
+                                                    dense_quantized_parameters_1.weights_zero_points,
+                                                    dense_quantized_parameters_1.biases_scale,
+                                                    dense_quantized_parameters_1.biases_zero_points);
         // Apply the activation function
         vector<float> dense1Activated = tanh1D(dense1Layer);
 
