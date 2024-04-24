@@ -44,9 +44,9 @@ void predict(model_t *model){
            default:
                break;
        }
-       memset(input->data, 0, sizeof(dtype) * MODEL_ARRAY_OUTPUT_LENGTH);
-       memcpy(input->data, output->data, sizeof(dtype) * MODEL_ARRAY_OUTPUT_LENGTH);
-       memset(output->data, 0, sizeof(dtype) * MODEL_ARRAY_OUTPUT_LENGTH);
+       memset(input->data, 0, sizeof(dtype) * MODEL_ARRAY_OUTPUT_LENGTH); //clear out input data since we dont nedd it anymore
+       memcpy(input->data, output->data, sizeof(dtype) * MODEL_ARRAY_OUTPUT_LENGTH); // load this layer output and make it the input to the next layer
+       memset(output->data, 0, sizeof(dtype) * MODEL_ARRAY_OUTPUT_LENGTH); // clear the output
        input->numRows = output->numRows;
        input->numCols = output->numCols;
    }

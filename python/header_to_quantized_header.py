@@ -19,27 +19,27 @@ FIXED_POINT_PRECISION = 10
 scale = 2**FIXED_POINT_PRECISION
 
 
-
 def parse_c_array_declaration(code):
     # Regular expression to capture the type, name, and values of the array
-    array_pattern = re.compile(r'\s*(const\s+)?(\w+)\s+(\w+)\[\]\s*=\s*\{([^}]*)\};')
+    array_pattern = re.compile(r"\s*(const\s+)?(\w+)\s+(\w+)\[\]\s*=\s*\{([^}]*)\};")
 
     # Find all matches in the input code
     arrays = array_pattern.findall(code)
 
     # Dictionary to store arrays
     parsed_arrays = {}
-    
+
     for match in arrays:
         _, _, name, values = match
         # Split values by comma and strip spaces
-        value_list = [float(value.strip()) for value in values.split(',') if value.strip()]
+        value_list = [
+            float(value.strip()) for value in values.split(",") if value.strip()
+        ]
         # Store in dictionary
-        parsed_arrays[name] = {
-            'values': value_list
-        }
-        
+        parsed_arrays[name] = {"values": value_list}
+
     return parsed_arrays
+
 
 def quantize(matrix):
     """Quantize a matrix to fixed-point representation"""
@@ -60,7 +60,7 @@ parsed_arrays = parse_c_array_declaration(example_code)
 fifteenth_picture = np.array(test_X[14])
 
 # Reshape the picture to a 1D array
-fifteenth_picture = fifteenth_picture.reshape(1, 28*28)
+fifteenth_picture = fifteenth_picture.reshape(1, 28 * 28)
 
 # Normalize the picture
 fifteenth_picture = fifteenth_picture / 255
@@ -72,27 +72,45 @@ print(len(fifteenth_picture))
 
 # open file to write arrays to
 
+
 def write_to_file(file, variable_name, list_length, data_list):
     # Convert list to string and replace brackets
-    data_str = str(data_list).replace('[', '{').replace(']', '}')
+    data_str = str(data_list).replace("[", "{").replace("]", "}")
 
     file.write(f"static dtype {variable_name}[{list_length}] = {data_str};\n")
 
-with open('quantized_weights.h', 'w') as file:
-    
+
+def dedupe_matrices(matrices):
+
+    for i in range(len(matrices)):
+        for j in range(i + 1, len(matrices)):
+            if np.allclose(matrices[i], matrices[j]):
+                print(f"Duplicate matrices at indices {i} and {j}")
+
+    return matrices
+
+
+lenet_layers_dict = {
+    "conv2d_1_weights": (6, 5, 5),
+    "conv2d_1_biases": 6,
+    "conv2d_2_weights": (16, 5, 5, 6),
+    "conv2d_2_biases": 16,
+    "dense_1_weights": (120, 400),
+    "dense_1_biases": 120,
+    "dense_2_weights": (84, 120),
+    "dense_2_biases": 84,
+    "dense_3_weights": (10, 84),
+    "dense_3_biases": 10,
+}
+
+with open("quantized_weights.h", "w") as file:
+
     for i in parsed_arrays:
         c_length = len(parsed_arrays[i]["values"])
         c_array = np.array(parsed_arrays[i]["values"])
+        dedupe_matrices(c_array.reshape(lenet_layers_dict[i]))
         c_array = quantize(c_array)
-    
+        print(i.upper())
         write_to_file(file, i.upper(), c_length, c_array.tolist())
-    write_to_file(file, "MNIST_INPUT", 28*28, quantize(fifteenth_picture).tolist())
+    write_to_file(file, "MNIST_INPUT", 28 * 28, quantize(fifteenth_picture).tolist())
     # file.write(f"static dtype MNIST_INPUT[{28*28}] = {quantize(fifteenth_picture).tolist()};\n")
-
-
-    
-
-   
-
-
-
