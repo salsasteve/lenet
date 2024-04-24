@@ -81,6 +81,58 @@ matrix *maxpooling_filters(matrix *result, matrix *input, uint16_t numFilters, u
     return result;
 }
 
+matrix *avgpooling(matrix *result, matrix *input, uint16_t pool_numRows, uint16_t pool_numCols){
+    /**
+     * Implementation of average pooling layer
+     */
+    uint16_t result_numRows = input->numRows / pool_numRows;
+    uint16_t result_numCols = input->numCols / pool_numCols;
+    uint16_t i, j, x, y, kx, ky, input_offset, result_offset;
+    int32_t sum;  // Use int32_t to prevent overflow if necessary
+    for (i = 0; i < result_numRows; i++){
+        for (j = 0; j < result_numCols; j++){
+
+            x = i * pool_numRows;
+            y = j * pool_numCols;
+
+            sum = 0;
+            for (kx = 0; kx < pool_numRows; kx++){
+                for (ky = 0; ky < pool_numCols; ky++){
+                    input_offset = (x + kx) * input->numCols + (y + ky);
+                    sum += input->data[input_offset];
+                }
+            }
+            result_offset = i * result_numCols + j;
+            result->data[result_offset] = sum / (pool_numRows * pool_numCols);  // Calculate average
+
+        }
+    }
+    return result;
+}
+
+matrix *avgpooling_filters(matrix *result, matrix *input, uint16_t numFilters, uint16_t pool_numRows, uint16_t pool_numCols){
+    /**
+     * Iteration for each filter
+     * one conv2d layer usually has multiple filters, we do avgpooling one by one
+     */
+
+    uint16_t i, filter_offset, result_offset, filter_length = input->numRows * input->numCols, result_length = result->numRows * result->numCols;
+    int16_t *filterData = input->data, *resultData = result->data;
+
+    for (i = numFilters; i > 0; i--){
+        filter_offset = (i - 1) * filter_length;
+        result_offset = (i - 1) * result_length;
+
+        input->data = filterData + filter_offset;
+        result->data = resultData + result_offset;
+
+        /* process one filter at a time */
+        avgpooling(result, input, pool_numRows, pool_numCols);
+    }
+    return result;
+}
+
+
 matrix *flatten(matrix* result, matrix *input, uint16_t num_filter){
     /**
      * Implementation of flatten layer for CNN

@@ -8,7 +8,7 @@
 #ifndef LAYERS_GUARD
 #define LAYERS_GUARD
 
-typedef enum {Dense, Conv2d, Flatten, Maxpooling} Layer;
+typedef enum {Dense, Conv2d, Flatten, Maxpooling, Avgpooling} Layer;
 typedef enum {Valid, Same} Padding;
 
 typedef struct{
@@ -35,7 +35,8 @@ typedef struct{
 } model_t;
 
 // Standard Neural Network Functions
-
+matrix *avgpooling(matrix *result, matrix *input, uint16_t pool_numRows, uint16_t pool_numCols);
+matrix *avgpooling_filters(matrix *result, matrix *input, uint16_t numFilters, uint16_t pool_numRows, uint16_t pool_numCols);
 matrix *filter_simple(matrix *result, matrix *input, matrix *filter, uint16_t precision, uint16_t stride_numRows, uint16_t stride_numCols);
 matrix *maxpooling(matrix* result, matrix *input, uint16_t pool_numRows, uint16_t pool_numCols);
 matrix *flatten(matrix* result, matrix *input, uint16_t num_filter);

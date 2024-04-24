@@ -41,6 +41,11 @@ void predict(model_t *model){
                output->numCols = input->numCols / layer->pool_numCols;
                maxpooling_filters(output, input, layer->numChannels, layer->pool_numRows, layer->pool_numCols);
                break;
+           case Avgpooling:
+               output->numRows = input->numRows / layer->pool_numRows;
+               output->numCols = input->numCols / layer->pool_numCols;
+               avgpooling_filters(output, input, layer->numChannels, layer->pool_numRows, layer->pool_numCols);
+               break;
            default:
                break;
        }
@@ -50,6 +55,7 @@ void predict(model_t *model){
        input->numRows = output->numRows;
        input->numCols = output->numCols;
    }
+   softmax(output, input, FIXED_POINT_PRECISION);
 }
 
 
