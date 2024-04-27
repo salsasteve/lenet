@@ -1,4 +1,5 @@
 #include "layers.h"
+#include "sys/_stdint.h"
 
 #pragma PERSISTENT(PADDING_BUFFER)
 static dtype PADDING_BUFFER[PADDING_BUFFER_LENGTH] = {0};
@@ -104,7 +105,6 @@ matrix *avgpooling(matrix *result, matrix *input, uint16_t pool_numRows, uint16_
             }
             result_offset = i * result_numCols + j;
             result->data[result_offset] = sum / (pool_numRows * pool_numCols);  // Calculate average
-
         }
     }
     return result;

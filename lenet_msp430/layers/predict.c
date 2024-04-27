@@ -56,6 +56,7 @@ void predict(model_t *model){
        input->numCols = output->numCols;
    }
    softmax(output, input, FIXED_POINT_PRECISION);
+   
 }
 
 
