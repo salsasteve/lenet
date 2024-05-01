@@ -212,15 +212,15 @@ int main()
 
     allImages = getMNISTImages(inputLayer.numOfImageForInference);
     vector<float> output = {};
-   
+
 
     for(int i = 0; i < inputLayer.numOfImageForInference; i++)
     {
-        
+
 	    vector<Image> input(1, allImages[i]);
         FeatureMaps layer1FeatureMaps = convolve2dDeep(input, conv2d_parameters_1.weights, conv2d_parameters_1.biases, conv2d_parameters_1.horizontalStride, conv2d_parameters_1.paddingAmount);
-	FeatureMaps layer1activatedFeatureMaps = tanh3D(layer1FeatureMaps);
-	cout << layer1activatedFeatureMaps[5][3][7] << "\n";
+        FeatureMaps layer1activatedFeatureMaps = tanh3D(layer1FeatureMaps);
+        cout << layer1activatedFeatureMaps[5][3][7] << "\n";
         FeatureMaps layer1PooledFeatureMaps = averagePooling3D(layer1activatedFeatureMaps, 2, 2);
 
 
@@ -235,8 +235,8 @@ int main()
 
         // Flatten the feature maps
         vector<float> flattenedFeatures = flatten(layer2PooledFeatureMaps);
-	cout << flattenedFeatures[0] << " " << flattenedFeatures[1] << "\n";
-	std::cout << "Flattened features count: " << flattenedFeatures.size() << endl;
+        cout << flattenedFeatures[0] << " " << flattenedFeatures[1] << "\n";
+        std::cout << "Flattened features count: " << flattenedFeatures.size() << endl;
 
 
         // Perform the matrix multiplication
@@ -287,8 +287,8 @@ int main()
         }
         //save output to array
         output.push_back(maxIndex);
-        
-        
+
+
     }
     //print output
     for(int i = 0; i < inputLayer.numOfImageForInference; i++)

@@ -6,6 +6,7 @@
 #include "activations.h"
 #include "pooling.h"
 #include "dense_layer.h"
+#include "convolution_cuda.h"
 #include <fstream>
 
 using namespace std;
@@ -230,7 +231,7 @@ int main()
     for(int i = 0; i < inputLayer.numOfImageForInference; i++)
     {
         
-	vector<Image> input(1, allImages[i]);
+	    vector<Image> input(1, allImages[i]);
         // Create 6 kernels for the first layer of LeNet-5 4D vector with aliases  
         DeepKernels layer1DeepKernels = LoadConv2DWeights(conv2d_1_weights,
                                           //layer1Config.kernelsCount,
@@ -241,10 +242,10 @@ int main()
                                           layer1Config.kernelsCount);
         vector<float> biases = LoadBias(conv2d_1_bias, layer1Config.kernelsCount);
 
-        FeatureMaps layer1FeatureMaps = convolve2dDeep(input, layer1DeepKernels, biases, layer1Config.horizontalStride, layer1Config.paddingAmount);
+        FeatureMaps layer1FeatureMaps = convolve2dDeep_GPU(input, layer1DeepKernels, biases, layer1Config.horizontalStride, layer1Config.paddingAmount);
 	
-	FeatureMaps layer1activatedFeatureMaps = tanh3D(layer1FeatureMaps);
-        FeatureMaps layer1PooledFeatureMaps = averagePooling3D(layer1activatedFeatureMaps, 2, 2);
+//	    FeatureMaps layer1activatedFeatureMaps = tanh3D(layer1FeatureMaps);
+        FeatureMaps layer1PooledFeatureMaps = averagePooling3D(layer1FeatureMaps, 2, 2);
         
         ConvLayerConfig layer2Config = {5, 5, 6, 16, 1, 1, 0};
 
@@ -265,11 +266,11 @@ int main()
         vector<float> biases2(layer1Config.kernelsCount);
         biases2 = LoadBias(conv2d_2_bias, layer2Config.kernelsCount);
 
-        FeatureMaps layer2FeatureMaps = convolve2dDeep(layer1PooledFeatureMaps, layer2DeepKernels, biases2, layer2Config.horizontalStride, layer2Config.paddingAmount);
+        FeatureMaps layer2FeatureMaps = convolve2dDeep_GPU(layer1PooledFeatureMaps, layer2DeepKernels, biases2, layer2Config.horizontalStride, layer2Config.paddingAmount);
         // Check the dimensions of the feature maps
         std::cout << "Layer 2 feature maps dimensions: " << layer2FeatureMaps.size() << "x" << layer2FeatureMaps[0].size() << "x" << layer2FeatureMaps[0][0].size() << endl;
-        FeatureMaps layer2activatedFeatureMaps = tanh3D(layer2FeatureMaps);
-        FeatureMaps layer2PooledFeatureMaps = averagePooling3D(layer2activatedFeatureMaps, 2, 2);
+//        FeatureMaps layer2activatedFeatureMaps = tanh3D(layer2FeatureMaps);
+        FeatureMaps layer2PooledFeatureMaps = averagePooling3D(layer2FeatureMaps, 2, 2);
 
         // Check the dimensions of the feature maps
         std::cout << "Layer 2 feature maps dimensions: " << layer2PooledFeatureMaps.size() << "x" << layer2PooledFeatureMaps[0].size() << "x" << layer2PooledFeatureMaps[0][0].size() << endl;
