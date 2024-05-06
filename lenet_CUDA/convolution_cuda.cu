@@ -191,7 +191,7 @@ vector<vector<vector<float>>> convolve2dDeep_GPU(
     const int c = inputMaps.size();                           // 通道数
     const int h = inputMaps[0].size();                          // 数据高
     const int w = inputMaps[0][0].size();                          // 数据宽
-    const int k = kernels.size();                           // 卷积核数量
+    const int f = kernels.size();                           // 卷积核数量
     const int r = kernels[0][0].size();                           // 卷积核高
     const int s = kernels[0][0][0].size();                           // 卷积核宽
     const int u = stride;                           // 卷积在高方向上的步长
@@ -203,9 +203,9 @@ vector<vector<vector<float>>> convolve2dDeep_GPU(
 
     float *in, *weight, *out, *bias;
     in = (float *)malloc(n * c * h * w * sizeof(float));
-    weight = (float *)malloc(k * c * r * s * sizeof(float));
-    bias = (float *)malloc(k *sizeof(float));
-    out = (float *)malloc(n * k * out_h * out_w * sizeof(float));
+    weight = (float *)malloc(f * c * r * s * sizeof(float));
+    bias = (float *)malloc(f *sizeof(float));
+    out = (float *)malloc(n * f * out_h * out_w * sizeof(float));
 
     int index = 0;
     for (int i = 0; i < c; ++i){
@@ -216,7 +216,7 @@ vector<vector<vector<float>>> convolve2dDeep_GPU(
         }
     }
     index = 0;
-    for (int i = 0; i < k; ++i){
+    for (int i = 0; i < f; ++i){
         for (int j=0; j<c;j++){
             for (int k=0; k<r;k++){
                 for (int l=0; l<s;l++){
@@ -226,14 +226,14 @@ vector<vector<vector<float>>> convolve2dDeep_GPU(
         }
     }
     index = 0;
-    for (int i = 0; i < k; ++i){
+    for (int i = 0; i < f; ++i){
         bias[index++]=biases[i];
     }
     conv2d_gpu(n,                           // batch size
                 c,                          // 通道数
                 h,                          // 数据高
                 w,                          // 数据宽
-                k,                           // 卷积核数量
+                f,                           // 卷积核数量
                 r,                           // 卷积核高
                 s,                           // 卷积核宽
                 u,                           // 卷积在高方向上的步长
@@ -244,13 +244,13 @@ vector<vector<vector<float>>> convolve2dDeep_GPU(
                 out_w,                       // 输出宽
                 in, weight, bias, out);
     // Initialize output maps
-    vector<vector<vector<float>>> outputMaps(k, vector<vector<float>>(out_h, vector<float>(out_w, 0.0)));
+    vector<vector<vector<float>>> outputMaps(f, vector<vector<float>>(out_h, vector<float>(out_w, 0.0)));
 
     // Perform convolution on each output feature map
     std::cout << "Biases count: " << biases.size() << endl;
     std::cout << "Kernels count: " << kernels.size() << endl;
     index = 0;
-    for (int i = 0; i < k; ++i){
+    for (int i = 0; i < f; ++i){
         for (int j=0; j<out_h;j++){
             for (int k=0; k<out_w;k++){
                 outputMaps[i][j][k] = out[index++];
