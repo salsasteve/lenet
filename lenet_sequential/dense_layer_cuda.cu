@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include <math.h>
-
+#include <vector>
 #define CEIL_DIV(M, N) (((M) + (N)-1) / (N))
 
 template <const int BM, const int BN, const int BK, const int TM>
@@ -84,7 +84,7 @@ __global__ void add_kernel(float *x, float *y, int n, bool activate){
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n) {
-        if activated{
+        if (activate){
             x[tid] = tanhf(x[tid] + y[tid]);
         }else{
             x[tid] = x[tid] + y[tid];
@@ -111,7 +111,7 @@ void run_sgemm_blocktiling_1d(float *A, float *B, float *bias, float *C, int m, 
 
 std::vector<float> dense_GPU(
     std::vector<float> &input,
-    std::vector<float> &bias,
+    std::vector<float> &biases,
     std::vector<std::vector<float>> &weights,
     int numOutputs,
     bool activate)

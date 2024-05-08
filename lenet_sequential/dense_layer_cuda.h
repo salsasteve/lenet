@@ -5,7 +5,7 @@
 #include <vector>
 std::vector<float> dense_GPU(
     std::vector<float> &input,
-    std::vector<float> &bias,
+    std::vector<float> &biases,
     std::vector<std::vector<float>> &weights,
     int numOutputs,
     bool activate)
