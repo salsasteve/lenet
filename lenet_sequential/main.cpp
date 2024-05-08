@@ -6,8 +6,8 @@
 #include "dense_layer.h"
 #include "convolution_cuda.h"
 #include "pooling_cuda.h"
-#include "dense_layer_cuda.h"
 #include <fstream>
+#include <cmath>
 
 using namespace std;
 using Image = vector<vector<float>>;
@@ -113,7 +113,7 @@ int main()
         vector<float> biases = LoadBias(conv2d_1_bias, layer1Config.kernelsCount);
 
         FeatureMaps layer1FeatureMaps = convolve2dDeep_GPU(input, layer1DeepKernels, biases, layer1Config.horizontalStride, layer1Config.paddingAmount);
-        FeatureMaps layer1PooledFeatureMaps = averagePooling3D_CUDA(layer1FeatureMaps, 2, 2);
+        FeatureMaps layer1PooledFeatureMaps = averagePooling3D_GPU(layer1FeatureMaps, 2, 2);
         
         ConvLayerConfig layer2Config = {5, 5, 6, 16, 1, 1, 0};
 
@@ -135,7 +135,7 @@ int main()
         FeatureMaps layer2FeatureMaps = convolve2dDeep_GPU(layer1PooledFeatureMaps, layer2DeepKernels, biases2, layer2Config.horizontalStride, layer2Config.paddingAmount);
         // Check the dimensions of the feature maps
         std::cout << "Layer 2 feature maps dimensions: " << layer2FeatureMaps.size() << "x" << layer2FeatureMaps[0].size() << "x" << layer2FeatureMaps[0][0].size() << endl;
-        FeatureMaps layer2PooledFeatureMaps = averagePooling3D_CUDA(layer2FeatureMaps, 2, 2);
+        FeatureMaps layer2PooledFeatureMaps = averagePooling3D_GPU(layer2FeatureMaps, 2, 2);
 
         // Check the dimensions of the feature maps
         std::cout << "Layer 2 feature maps dimensions: " << layer2PooledFeatureMaps.size() << "x" << layer2PooledFeatureMaps[0].size() << "x" << layer2PooledFeatureMaps[0][0].size() << endl;

@@ -173,7 +173,7 @@ vector<vector<vector<float>>> averagePooling3D_GPU(
     // Initialize output maps
     vector<vector<vector<float>>> outputMaps(c, vector<vector<float>>(out_h, vector<float>(out_w, 0.0)));
     index = 0;
-    for (int i = 0; i < k; ++i){
+    for (int i = 0; i < c; ++i){
         for (int j=0; j<out_h;j++){
             for (int k=0; k<out_w;k++){
                 outputMaps[i][j][k] = out[index++];
