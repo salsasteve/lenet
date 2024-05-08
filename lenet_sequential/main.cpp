@@ -1,13 +1,13 @@
+#include <fstream>
 #include <iostream>
 #include <vector>
+#include <cmath>
 #include "MNISTLoader.h"
 #include "config.h"
 #include "read_model_weights.h"
 #include "convolution_cuda.h"
 #include "pooling_cuda.h"
 #include "dense_layer_cuda.h"
-#include <fstream>
-#include <cmath>
 
 using namespace std;
 using Image = vector<vector<float>>;
@@ -50,18 +50,18 @@ vector<float> flatten(const FeatureMaps &featureMaps)
     return flattened;
 }
 
-std::vector<float> softmax1D(const std::vector<float>& v) {
+vector<float> softmax1D(const vector<float>& v) {
     float sum = 0.0f;
-    std::vector<float> output(v.size());
+    vector<float> output(v.size());
 
     // Compute the sum of exp(values) for the vector
     for (auto val : v) {
-        sum += std::exp(val);
+        sum += exp(val);
     }
 
     // Compute softmax for each value in the vector
     for (size_t i = 0; i < v.size(); ++i) {
-        output[i] = std::exp(v[i]) / sum;
+        output[i] = exp(v[i]) / sum;
     }
     return output;
 }
@@ -149,7 +149,7 @@ int main()
         vector<float> dense1Layer = dense_GPU(flattenedFeatures, dense1Biases, dense1Weights, 120, true);
 
         // print dimensions of the dense layer
-        std::cout << "Dense layer dimensions: " << dense1Activated.size() << endl;
+        std::cout << "Dense layer dimensions: " << dense1Layer.size() << endl;
 
         // Load the weights for the second dense layer
         // 120 input neurons, 84 output neurons
@@ -161,10 +161,10 @@ int main()
         vector<float> dense2Biases = LoadBias(dense_2_bias, 84);
 
         // Perform the matrix multiplication
-        vector<float> dense2Layer = dense_GPU(dense1Activated, dense2Biases, dense2Weights, 84, true);
+        vector<float> dense2Layer = dense_GPU(dense1Layer, dense2Biases, dense2Weights, 84, true);
 
         // print dimensions of the dense layer
-        std::cout << "Dense layer dimensions: " << dense2Activated.size() << endl;
+        std::cout << "Dense layer dimensions: " << dense2Layer.size() << endl;
 
         // Load the weights for the third dense layer
         // 84 input neurons, 10 output neurons
@@ -177,7 +177,7 @@ int main()
         vector<float> dense3Biases = LoadBias(dense_3_bias, 10);
 
         // Perform the matrix multiplication
-        vector<float> dense3Layer = dense_GPU(dense2Activated, dense3Biases, dense3Weights, 10, false);
+        vector<float> dense3Layer = dense_GPU(dense2Layer, dense3Biases, dense3Weights, 10, false);
 
         // Apply the activation function
         vector<float> dense3Activated = softmax1D(dense3Layer);

@@ -1,9 +1,8 @@
-#include <stdio.h>
 #include <iostream>
+#include <cstdlib>
 #include <cuda_runtime.h>
 #include <math.h>
 #include <vector>
-#define CEIL_DIV(M, N) (((M) + (N)-1) / (N))
 
 template <const int BM, const int BN, const int BK, const int TM>
 __global__ void sgemm_blocktiling_1d_kernel(float *A, float *B, float *C, int M, int N, int K)
@@ -99,7 +98,7 @@ void run_sgemm_blocktiling_1d(float *A, float *B, float *bias, float *C, int m, 
     const int BN = 64;
     const int BK = 8;
     const int TM = 8;
-    dim3 grid_size(CEIL_DIV(n, BN), CEIL_DIV(m, BM));
+    dim3 grid_size((n+BN-1)/BN, (m+BM-1)/BM);
     dim3 block_size((BM * BN) / TM);
     sgemm_blocktiling_1d_kernel<BM, BN, BK, TM>
         <<<grid_size, block_size>>>(A, B, C, m, n, k);
@@ -163,7 +162,7 @@ std::vector<float> dense_GPU(
     std::vector<float> output(n);
     index = 0;
     for (int i = 0; i < n; ++i){
-        outputMaps[i] = out[index++];
+        output[i] = C[index++];
     }
     cudaFree(d_A);
     cudaFree(d_B);
