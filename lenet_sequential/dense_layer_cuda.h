@@ -3,12 +3,10 @@
 
 #include <iostream>
 #include <vector>
-extern "C"{
 std::vector<float> dense_GPU(
     std::vector<float> &input,
     std::vector<float> &bias,
     std::vector<std::vector<float>> &weights,
     int numOutputs,
     bool activate)
-}
 #endif // DENSE_LAYER_CUDA_H

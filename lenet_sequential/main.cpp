@@ -3,9 +3,9 @@
 #include "MNISTLoader.h"
 #include "config.h"
 #include "read_model_weights.h"
-#include "dense_layer.h"
 #include "convolution_cuda.h"
 #include "pooling_cuda.h"
+#include "dense_layer_cuda.h"
 #include <fstream>
 #include <cmath>
 
@@ -62,15 +62,6 @@ std::vector<float> softmax1D(const std::vector<float>& v) {
     // Compute softmax for each value in the vector
     for (size_t i = 0; i < v.size(); ++i) {
         output[i] = std::exp(v[i]) / sum;
-    }
-    return output;
-}
-
-// Hyperbolic tangent function applied to a 1D vector
-std::vector<float> tanh1D(const std::vector<float>& v) {
-    std::vector<float> output;
-    for (auto val : v) {
-        output.push_back(std::tanh(val));
     }
     return output;
 }
@@ -155,9 +146,7 @@ int main()
         vector<float> dense1Biases = LoadBias(dense_1_bias, 120);
 
         // Perform the matrix multiplication
-        vector<float> dense1Layer = dense(flattenedFeatures, dense1Biases, dense1Weights, 120);
-        // Apply the activation function
-        vector<float> dense1Activated = tanh1D(dense1Layer);
+        vector<float> dense1Layer = dense_GPU(flattenedFeatures, dense1Biases, dense1Weights, 120, true);
 
         // print dimensions of the dense layer
         std::cout << "Dense layer dimensions: " << dense1Activated.size() << endl;
@@ -172,10 +161,7 @@ int main()
         vector<float> dense2Biases = LoadBias(dense_2_bias, 84);
 
         // Perform the matrix multiplication
-        vector<float> dense2Layer = dense(dense1Activated, dense2Biases, dense2Weights, 84);
-
-        // Apply the activation function
-        vector<float> dense2Activated = tanh1D(dense2Layer);
+        vector<float> dense2Layer = dense_GPU(dense1Activated, dense2Biases, dense2Weights, 84, true);
 
         // print dimensions of the dense layer
         std::cout << "Dense layer dimensions: " << dense2Activated.size() << endl;
@@ -191,7 +177,7 @@ int main()
         vector<float> dense3Biases = LoadBias(dense_3_bias, 10);
 
         // Perform the matrix multiplication
-        vector<float> dense3Layer = dense(dense2Activated, dense3Biases, dense3Weights, 10);
+        vector<float> dense3Layer = dense_GPU(dense2Activated, dense3Biases, dense3Weights, 10, false);
 
         // Apply the activation function
         vector<float> dense3Activated = softmax1D(dense3Layer);
