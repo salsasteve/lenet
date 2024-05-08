@@ -3,10 +3,10 @@
 #include "MNISTLoader.h"
 #include "config.h"
 #include "read_model_weights.h"
-#include "pooling.h"
 #include "dense_layer.h"
 #include "convolution_cuda.h"
 #include "pooling_cuda.h"
+#include "dense_layer_cuda.h"
 #include <fstream>
 
 using namespace std;
